@@ -1,0 +1,81 @@
+<head>
+	<title>Commonly Hub - Public domain assets for your next masterpiece</title>
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+	<link href='/css/create.css' rel='stylesheet' type='text/css'>
+	<link rel="shortcut icon" href="/favicon.ico" />
+</head>
+
+<body>
+
+	<div id="form">
+
+		<form id="payment_form" action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post" target="_top">
+				
+			<!-- Paypal ID -->
+			<input type="hidden" name="business" value="business@ncase.me">
+
+			<!-- Paypal Variables -->
+			<input type="hidden" name="cmd" value="_xclick">
+			<input type="hidden" name="lc" value="CA">
+			<input type="hidden" name="item_name" value="<%=project.title%>">
+			<input type="hidden" name="currency_code" value="USD">
+			<input type="hidden" name="button_subtype" value="services">
+			<input type="hidden" name="no_note" value="1">
+			<input type="hidden" name="no_shipping" value="1">
+			<input type="hidden" name="bn" value="PP-BuyNowBF:btn_buynowCC_LG.gif:NonHosted">
+
+			<!-- Paypal Variables Override -->
+			<input type="hidden" name="address_override" value="1">
+			<input type="hidden" name="notify_url" value="http://<%=hostname%>/transactions/paypal/ipn">
+			<input type="hidden" name="return" value="http://<%=hostname%>/projects/<%=project.username%>/<%=project.url_title%>">
+
+			<!-- Custom Params -->
+			<input name="custom" id="custom" type="hidden">
+			<input name="custom_project_id" id="custom_project_id" type="hidden" value="<%=project._id%>">
+
+			How would you like to be credited:<br>
+			<span>(Your Name, @Twitter, /u/Reddit, Website.com)</span>
+			<input name="custom_name" type="text" placeholder="[Anonymous]"><br>
+
+			Send download link to this email:<br>
+			<span>(don't worry, this is a one-time email.)</span>
+			<input name="custom_email" type="email" placeholder="your@email.com" required>
+			<!--input name="custom_email_subscribe" type="checkbox" checked="true" style="width:20px">
+			<span style="font-size:14px">let me know when this goes public domain. (one time email)</span-->
+			<br>
+
+			Pay What You Want: (USD)
+			<input type="text" name="amount" pattern="\d+(\.\d+)?" placeholder="custom amount" required>
+
+			<!-- Submit -->
+			<button id="submit_button">Buy this!</button>
+			<input type="submit" style="display:none"/>
+			
+			<!-- Paypal's Tracking Pixel, this ain't mine. -->
+			<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+
+		</form>
+
+	</div>
+
+</body>
+
+<script>
+
+var form = document.getElementById("payment_form");
+var formCustom = document.getElementById("custom");
+var formSubmit = document.getElementById("submit_button");
+
+formSubmit.onclick = function(){
+
+	formCustom.value = JSON.stringify({
+		name: form.custom_name.value,
+		email: form.custom_email.value,
+		project_id: form.custom_project_id.value,
+	});
+
+	document.querySelector('input[type=submit]').click();  
+
+};
+
+</script>

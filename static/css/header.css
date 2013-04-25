@@ -1,0 +1,51 @@
+#nav_header {
+	background: #000;
+}
+#nav_header_cont {
+
+	position: relative;
+
+	width:960px; height:200px;
+	margin:0px auto;
+
+	text-align: center;
+	color: #FFF;
+	font-size: 20px;
+
+}
+
+#nav_header_logo {
+	display: block;
+	width:130px; height:130px;
+	position: absolute;
+	top:40px; left:415px;
+}
+#nav_header_logo:hover {
+	-webkit-transform: scale(1.05,1.05);
+	-moz-transform: scale(1.05,1.05);
+	-ms-transform: scale(1.05,1.05);
+	-o-transform: scale(1.05,1.05);
+	transform: scale(1.05,1.05);
+}
+
+#nav_header a > div {
+	position: absolute;
+	top:90px;
+	text-decoration: none;
+	color: #999;
+}
+#nav_header a:hover > div {
+	color:#fff;
+}
+
+#nav_header_arrow {
+	
+	position: absolute;
+	top:200px; left:440px;
+
+	width:0; height:0;
+	border-color: #000 transparent transparent transparent;
+	border-style: solid;
+	border-width: 40px 40px;
+
+}

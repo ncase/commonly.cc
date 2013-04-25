@@ -1,0 +1,109 @@
+<head>
+	
+	<title>Commonly Hub</title>
+	<link rel="shortcut icon" href="/favicon.ico" />
+
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+	<link href='/css/index.css' rel='stylesheet' type='text/css'>
+	<link href='/css/header.css' rel='stylesheet' type='text/css'>
+	<link href='/css/project.css' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body>
+
+	<%- include ../elements/Header.ejs %>
+
+	<div class="white segment">
+
+		<div id="asset_container">
+
+			<%
+			var projects = projects || [];
+			for(var i=0;i<projects.length;i++){
+				var project = projects[i];
+				var isFunded = (project.funding>=project.goal) || project.isBuyer;
+			%>
+
+			<div class="project" style="background-image:url(<%=project.banner%>);">
+				
+				<!-- Info sidebar -->
+
+				<div id="info">
+					<div id="title"><%=project.title%></div>
+					<%-project.blurb%>
+				</div>
+
+				<!-- Controls -->
+
+				<div id="controls" funded="<%=isFunded%>">
+
+					<%
+					if(isFunded){
+					%>
+
+						<a href="<%=project.asset%>">
+						<div class="control_button" id="download_button">
+							<img id="icon" src="/img/download.png">
+							<span>DOWNLOAD</span>
+						</div>
+						</a>
+						<div class="control_button" id="preview_button">
+							<img id="icon" src="/img/play.png">
+							<span>PREVIEW</span>
+						</div>
+
+					<%
+					}else{
+					%>
+
+						<div id="funding">
+							$<%=project.funding.toFixed(2)%> out of $<%=project.goal%> to turn this public domain
+							<div id="funding_progress">
+								<div id="funding_progress_bar" style="width:<%=(project.funding/project.goal)*100%>%"></div>	
+							</div>
+						</div>
+
+						<a href="/buy/<%=project._id%>">
+						<div class="control_button" id="pay_button">
+							<img id="icon" src="/img/download.png">
+							<span>PAY WHAT YOU WANT</span>
+						</div>
+						</a>
+						
+						<div class="control_button" id="preview_button">
+							<img id="icon" src="/img/play.png">
+							<span>PREVIEW</span>
+						</div>
+
+					<%
+					}
+					%>
+
+				</div>
+
+				<!-- iFrame: Preview, Payment, etc... -->
+
+				<div id="preview">
+					<iframe src="" scrolling="no" frameborder="0" allowfullscreen></iframe>
+					<a href="<%=project.asset%>">
+						<div id="download" class="control_button"><div></div></div>
+					</a>
+					<a href="" target="_blank">
+						<div id="tweet" class="control_button"><div></div></div>
+					</a>
+				</div>
+
+			</div>
+
+			<%
+			}
+			%>
+
+		</div>
+	</div>
+
+</body>
+
+<!-- Hub Script -->
+<script src="/js/library.js"></script>

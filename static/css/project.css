@@ -1,0 +1,183 @@
+.project {
+
+	position: relative;
+	overflow: hidden;
+	
+	width:960px;
+	min-height:240px; 
+	height:240px; 
+
+	background-position: 50% 50%;
+	margin-bottom: 30px;
+
+	
+	-webkit-transition: height 0.5s ease-in-out;
+	-webkit-transition: height 0.5s ease-in-out;
+	-webkit-transition: height 0.5s ease-in-out;
+	-webkit-transition: height 0.5s ease-in-out;
+	-webkit-transition: height 0.5s ease-in-out;
+
+	-moz-transition: height 0.5s ease-in-out;
+	-ms-transition: height 0.5s ease-in-out;
+	-o-transition: height 0.5s ease-in-out;
+	transition: height 0.5s ease-in-out;
+
+}
+.project[expanded] {
+	height:400px;
+}
+
+
+/****************************/
+/****************************/
+
+.project #info {
+
+	position: absolute;
+	top:0; left:0;
+
+	overflow: hidden;
+
+	width:280px; height:200px;
+	padding: 20px;
+	background-color:rgba(255,255,255,0.9);
+	font-size: 18px;
+
+}
+.project #info #title {
+	font-size: 30px;
+	text-transform: uppercase;
+	line-height: 1em;
+	margin-bottom: 10px;
+}
+
+/****************************/
+/****************************/
+
+.project > #preview {
+	
+	background: rgba(0,0,0,0.7);
+	width:480px; height:320px;
+	position: absolute;
+	top: 50px;
+	left: 335px;
+	
+	opacity:0;
+	visibility: hidden;
+	
+	-webkit-transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out, visibility 0s 0.5s;
+	-moz-transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out, visibility 0s 0.5s;
+	-ms-transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out, visibility 0s 0.5s;
+	-o-transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out, visibility 0s 0.5s;
+	transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out, visibility 0s 0.5s;
+
+}
+.project[expanded] > #preview {
+	top:40px;
+	opacity:1;
+	visibility: visible;
+
+	-webkit-transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out;
+	-moz-transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out;
+	-ms-transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out;
+	-o-transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out;
+	transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out;
+
+}
+.project > #preview iframe {
+	width: 460px;
+	height: 300px;
+	margin: 10px;
+}
+
+/****************************/
+/****************************/
+
+.project #controls {
+	position: absolute;
+	right:0;
+	width:640px; height:240px;
+}
+.project #controls a {
+	text-decoration: none;
+}
+.project .control_button {
+	background: rgba(0,0,0,0.9);
+	border: 5px solid rgba(100,100,100,0.4);
+	color:#fff;
+	padding: 5px 30px;
+	font-size: 25px;
+	border-radius: 5px;
+	width:200px;
+	line-height: 1em;
+}
+.project .control_button:hover {
+	background: rgba(50,50,50,0.9);
+	cursor: pointer;
+}
+.project .control_button #icon {
+	width:40px; height:40px;
+	margin-right:10px;
+}
+.project .control_button span {
+	position: relative;
+	top:-10px;
+}
+
+.project #controls[funded=true] {
+	top:50px;
+}
+.project #controls[funded=true] .control_button {
+	margin: 0 auto 10px auto;
+}
+
+.project #controls[funded=false] {
+}
+.project #controls[funded=false] .control_button {
+	position: absolute;
+	padding: 5px 10px;
+}
+.project #controls[funded=false] .control_button#pay_button {
+	width: 320px;
+	top: 150px; left: 40px;
+}
+.project #controls[funded=false] .control_button#preview_button {
+	width: 160px;
+	top: 150px; left: 410px;
+}
+.project #controls[funded=false] #funding {
+	
+	background: rgba(0,0,0,0.5);
+	color:#fff;
+
+	font-size: 25px;
+	line-height: 1em;
+	text-align: center;
+
+	width:560px; height: 100px;
+	padding: 30px 20px;
+	
+	position: absolute;
+	top: 30px; left: 20px;
+
+}
+.project #controls[funded=false] #funding_progress {
+	margin: 10px 0 5px 0;
+	width:550px; height:30px;
+	border-radius: 100px;
+	position: relative;
+	overflow: hidden;
+	border: 5px solid rgba(0,0,0,0);
+	background: rgba(0,0,0,0.8);
+}
+.project #controls[funded=false] #funding_progress_bar {
+	border-radius: 100px;
+	position: absolute;
+	width:42%; height:100%;
+	background: #FFF;
+}
+
+
+
+
+

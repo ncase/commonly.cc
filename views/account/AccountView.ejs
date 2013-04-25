@@ -1,0 +1,115 @@
+<head>
+	
+    <title>Commonly Hub - Public domain assets for your next masterpiece</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+    <link href='/css/header.css' rel='stylesheet' type='text/css'>
+	<link href='/css/create.css' rel='stylesheet' type='text/css'>
+	
+</head>
+<body>
+
+    <%- include ../elements/Header.ejs %>
+
+	<div id="form">
+
+		<%if(user){%>
+
+            Hello, <%=user.email%>!
+            <button id="logout">Logout</button>
+            <hr>
+            <br>
+
+			<form action="/account/create" method="POST">
+
+				<!-- New User -->
+				Get yourself a sweet username!
+				<input type="text" name="username" required value="<%=user.username||''%>">
+				<br>
+
+				What Paypal address would you like to get paid at?
+				<input type="email" name="paypal" required value="<%=user.paypal||''%>">
+				<br>
+
+				<!-- Submit -->
+				<button name="submit">Update Account</button>
+
+			</form>
+
+            <hr>
+
+            <%if(user.username){%>
+                <a href="/projects/<%=user.username%>">Your Projects</a>
+                <a href="/projects/new">Create Project</a>
+            <%}else{%>
+                you must set up your account before creating a project
+            <%}%>
+
+		<%}else{%>
+            Signup with <a href="https://login.persona.org/about" target="_blank">Mozilla Persona</a>
+            <br>
+            a single sign-on service that respects yo' damn privacy.
+            <br>
+            <br>
+			<button id="login">Login with Persona</button>
+		<%}%>
+
+	</div>
+
+    <br><br><br><br>
+
+</body>
+
+<!-- Scripts -->
+<script src="https://login.persona.org/include.js"></script>
+<script>
+
+var loginButton = document.querySelector("#login");
+if(loginButton){
+    loginButton.addEventListener("click",function(){
+        navigator.id.request();
+    },false);
+}
+
+var logoutButton = document.querySelector("#logout");
+if(logoutButton){
+    logoutButton.addEventListener("click",function(){
+        navigator.id.logout();
+    },false);
+}
+
+navigator.id.watch({
+    onlogin: function(assertion) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/persona/verify", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.addEventListener("loadend", function(e) {
+            var data = JSON.parse(this.responseText);
+            console.log(data);
+            if (data && data.status === "okay") {
+               <%if(!user){%>
+               	//alert("You have been logged in as: " + data.email);
+               	window.location.reload();
+               <%}%>
+            }
+        }, false);
+
+        xhr.send(JSON.stringify({
+            assertion: assertion
+        }));
+    },
+    onlogout: function() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/persona/logout", true);
+        xhr.addEventListener("loadend", function(e) {
+            <%if(user){%>
+            //alert("You have been logged out");
+            window.location.reload();
+            <%}%>
+        });
+        xhr.send();
+    }
+});
+
+</script>
