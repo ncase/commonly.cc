@@ -1,9 +1,11 @@
+var ObjectID = require('mongodb').ObjectID;
 var sunny = require("sunny").Configuration.fromEnv();
 
 module.exports = function(app){
 
     //////////////////
-    // CREATE
+    // CREATING & EDITING
+    //////////////////
 
     app.get('/projects/new', function(request, response){
 
@@ -14,10 +16,80 @@ module.exports = function(app){
             return;
         }
 
-    	response.render('project/ProjectCreate.ejs');
+        // New Project
+
+        var newProject = {
+
+            _id: -1,
+
+            title: "New Project",
+            url_title: null,
+            blurb: "Your crowdfunding ransom",
+            
+            banner: "http://placekitten.com/960/300",
+            username: user.username,
+
+            goal: 0,
+            asset: null,
+            preview: "",
+
+            live: false
+            
+        };  
+
+        response.render('project/ProjectEdit.ejs',{
+            project: newProject
+        });
 
     });
-    app.post('/projects/create', function(request, response){
+
+    app.get('/projects/edit/:id', function(request, response){
+
+        var id = request.params.id;
+
+        // Are you logged in w username
+        var user = request.session.user;
+        if(!user || !user.username){
+            response.redirect("/account");
+            return;
+        }
+
+        // Make sure you OWN THIS!
+        app.connectDatabase( function(err, db) {
+            if(err) { return console.dir(err); }
+
+            db.collection('projects').find({
+                
+                _id: new ObjectID(id)
+
+            }).toArray(function(err,projects){
+                if(err) { return console.dir(err); }
+                var project = projects[0];
+
+                // You OWN this project!
+                if(project.username != user.username){
+                    response.send("oy. you don't own this project.");
+                    return;
+                }
+
+                response.render('project/ProjectEdit.ejs',{
+                    project: project
+                });
+
+                db.close();
+
+            });
+        });
+
+    });
+
+
+
+    //////////////////
+    // SERVER SIDE LOGIC
+    //////////////////
+
+    app.post('/projects/update', function(request, response){
 
         // Are you logged in w username
         var user = request.session.user;
@@ -26,87 +98,140 @@ module.exports = function(app){
             return;
         }
 
-        // Name & URL-safe Name: Alphanumerics with Hyphens.
-        var title = request.body.title.trim();
-        var url_title = title.toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s/g,"-");
+        // ID
+        var _id = request.body._id;
+        var query = {};
+        var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+        if(checkForHexRegExp.test(_id)){
+            query._id = new ObjectID(_id);
+        }
 
-        // Metainfo
-        var blurb = request.body.blurb;
+        // CHECK: You actually OWN THIS DAMN PROJECT
+        // CHECK: This project has not already been published
+        app.connectDatabase( function(err, db) {
+            if(err) { return console.dir(err); }
 
-        // Funding Goal
-        var goal = parseFloat(request.body.goal);
-        if(goal<0) return;
-        
-        // Upload Files
-        var bucket = process.env.SUNNY_BUCKET;
-        var bucketRequest = sunny.connection.getContainer(bucket);
-        bucketRequest.on('end', function(results,meta){
-            
-            var container = results.container;
-            console.log("GET container: "+container.name);
-           
-            // Write images
-            function uploadFile(file,callback){
+            db.collection('projects').find(query).toArray(function(err,projects){
+                if(err) { return console.dir(err); }
+                var originalProject = projects[0];
 
-                var filepath = file.path;
-                var filename = (Math.random().toString(36).substr(2)) + "_" + file.name;
-                var filetype = file.type;
+                // Project already exists, then check you OWN this project
+                if(originalProject && originalProject.username!=user.username){
+                    response.send("You don't own this project");
+                    return;
+                }
 
-                var uploadRequest = container.putBlobFromFile( filename, filepath, {
-                    headers: { "Content-Type":filetype }
-                });
+                // Name & URL-safe Name: Alphanumerics with Hyphens.
+                var title = request.body.title.trim();
+                var url_title = title.toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s/g,"-");
 
-                uploadRequest.on('end', function (results, meta) {
-                    var url = "http://"+process.env.SUNNY_AUTH_URL+"/"+bucket+"/"+filename;
-                    callback(url);
-                });
+                // Metainfo
+                var blurb = request.body.blurb;
 
-                uploadRequest.end();
+                // Preview URL
+                var previewURL = request.body.preview;
 
-            }
+                // Variables you can't change if it's published
+                var LIVE_LOCKED = (originalProject && !!originalProject.live);
+                if(!LIVE_LOCKED){
 
-            // Upload both files
-            uploadFile( request.files.banner, function(bannerURL){
-                uploadFile( request.files.asset, function(assetURL){
+                    // Funding Goal
+                    var goal = parseFloat(request.body.goal);
+                    if(goal<0) return;
 
-                    var entry = {
-                        title: title,
-                        url_title: url_title,
-                        blurb: blurb,
-                        banner: bannerURL,
-                        goal: goal,
-                        asset: assetURL,
-                        username: user.username
-                    };
+                    // Live
+                    var live = !!request.body.live; // Force to boolean
 
-                    app.connectDatabase( function(err, db) {
-                        if(err) { return console.dir(err); }
+                }
 
-                        db.collection('projects').insert( entry, function(err,inserted){
-                            if(err) { return console.dir(err); }
+                // TODO: Check that all necessary vars are in if livelocked.
+                
+                // Upload Files
+                var bucket = process.env.SUNNY_BUCKET;
+                var bucketRequest = sunny.connection.getContainer(bucket);
+                bucketRequest.on('end', function(results,meta){
+                    
+                    var container = results.container;
+                   
+                    // Write images
+                    function uploadFile(file,originalURL,lockFlag,callback){
 
-                            // Finally Respond
-                            var json = JSON.stringify(inserted[0]);
-                            console.log("Created Project: "+json);
-                            db.close();
+                        if(!lockFlag && file.size>0){
 
-                            response.redirect('/projects/'+entry.username+'/'+entry.url_title);
+                            var filepath = file.path;
+                            var filename = (Math.random().toString(36).substr(2)) + "_" + file.name;
+                            var filetype = file.type;
+
+                            var uploadRequest = container.putBlobFromFile( filename, filepath, {
+                                headers: { "Content-Type":filetype }
+                            });
+
+                            uploadRequest.on('end', function (results, meta) {
+                                var url = "http://"+process.env.SUNNY_AUTH_URL+"/"+bucket+"/"+filename;
+                                callback(url);
+                            });
+
+                            uploadRequest.end();
+
+                        }else{
+                            callback(originalURL);
+                        }
+
+                    }
+
+                    // Upload both files
+                    uploadFile( request.files.banner, request.body.banner_original, false, function(bannerURL){
+                        uploadFile( request.files.asset, request.body.asset_original, LIVE_LOCKED, function(assetURL){
+
+                            var entry = {
+
+                                title: title,
+                                url_title: url_title,
+                                blurb: blurb,
+                                
+                                banner: bannerURL,
+                                username: user.username,
+
+                                goal: goal,
+                                asset: assetURL,
+                                preview: previewURL,
+
+                                live: live
+                                
+                            };
+
+                            // UPSERT PROJECT in Database
+                            db.collection('projects').update( query, entry, {upsert:true}, function(err,inserted){
+                                if(err) { return console.dir(err); }
+
+                                // Finally Respond
+                                response.redirect('/projects/'+entry.username+'/'+entry.url_title);
+                                db.close();
+
+                            });
 
                         });
                     });
-
+                    
                 });
+                bucketRequest.end();
+
             });
-            
         });
-        bucketRequest.end();
 
     });
 
+
+
     //////////////////
     // VIEW PROJECTS
+    //////////////////
 
-    var renderProjects = function(response,query,buyerTransaction){
+    var renderProjects = function(response,query,options){
+
+        options = options || {};
+        var buyerTransaction = options.transaction;
+        var username = options.user ? options.user.username : null;
 
         app.connectDatabase( function(err, db) {
             if(err) { return console.dir(err); }
@@ -118,7 +243,20 @@ module.exports = function(app){
                     if(err) { return console.dir(err); }
 
                     for(var i=0;i<projects.length;i++){
+                        
                         var project = projects[i];
+
+                        // You are the creator
+                        project.isCreator = (project.username==username);
+
+                        // Remove project if it's not live, and you're not the creator
+                        if(!project.live && !project.isCreator){
+                            projects.splice(i);
+                            i--;
+                            continue;
+                        }
+
+                        // Project funding
                         project.isBuyer = false;
                         project.funding = transactions.reduce( function(value,transaction){
 
@@ -132,6 +270,7 @@ module.exports = function(app){
                             }
 
                         },0);
+
                     }
 
                     response.render('project/ProjectView.ejs',{
@@ -148,9 +287,15 @@ module.exports = function(app){
         renderProjects(response);
     });
     app.get('/projects/:username', function(request, response){
-        renderProjects(response,{
-            username: request.params.username
-        });
+        renderProjects(
+            response,
+            {
+                username: request.params.username
+            },
+            {
+                user: request.session.user
+            }
+        );
     });
     app.get('/projects/:username/:url_title', function(request, response){
         renderProjects(
@@ -159,7 +304,10 @@ module.exports = function(app){
                 username: request.params.username,
                 url_title: request.params.url_title
             },
-            request.query.tx
+            {
+                transaction: request.query.tx,
+                user: request.session.user
+            }
             // To do: a COMPLETELY different view when you're buyer, so it knows to also give you a confirmation message
         );
     });

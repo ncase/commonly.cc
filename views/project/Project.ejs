@@ -1,0 +1,70 @@
+<div class="project" style="background-image:url(<%=project.banner%>);">
+				
+	<!-- Info sidebar -->
+
+	<div id="info">
+		<a href="/projects/<%=project.username%>/<%=project.url_title%>">
+			<div id="title"><%=project.title%></div>
+		</a>
+		<%-project.blurb%>
+	</div>
+
+	<!-- Controls -->
+
+	<div id="controls" funded="<%=project.isFunded%>">
+
+		<%
+		if(project.isFunded){
+		%>
+
+			<a href="<%=project.asset%>" target="_blank">
+			<div class="control_button" id="download_button">
+				<img id="icon" src="/img/download.png">
+				<span>DOWNLOAD</span>
+			</div>
+			</a>
+
+			<a href="<%=project.preview%>" target="_blank">
+			<div class="control_button" id="preview_button">
+				<img id="icon" src="/img/play.png">
+				<span>PREVIEW</span>
+			</div>
+			</a>
+
+		<%
+		}else{
+		%>
+
+			<div id="funding">
+				$<%=project.funding.toFixed(2)%> out of $<%=project.goal%> to turn this public domain
+				<div id="funding_progress">
+					<div id="funding_progress_bar" style="width:<%=(project.funding/project.goal)*100%>%"></div>	
+				</div>
+			</div>
+
+			<a href="/buy/<%=project._id%>">
+			<div class="control_button" id="pay_button">
+				<img id="icon" src="/img/download.png">
+				<span>PAY WHAT YOU WANT</span>
+			</div>
+			</a>
+			
+			<a href="<%=project.preview%>" target="_blank">
+			<div class="control_button" id="preview_button">
+				<img id="icon" src="/img/play.png">
+				<span>PREVIEW</span>
+			</div>
+			</a>
+
+		<%
+		}
+		%>
+
+	</div>
+
+</div>
+
+<%if(project.isCreator){%>
+<a href="/projects/edit/<%=project._id%>">Edit this project!</a>
+<br>
+<%}%>

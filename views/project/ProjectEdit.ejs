@@ -1,0 +1,109 @@
+<head>
+	
+	<title>Commonly Hub - Public domain assets for your next masterpiece</title>
+	<link rel="shortcut icon" href="/favicon.ico" />
+
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+	<link href='/css/index.css' rel='stylesheet' type='text/css'>
+	<link href='/css/create.css' rel='stylesheet' type='text/css'>
+	<link href='/css/project.css' rel='stylesheet' type='text/css'>
+
+</head>
+<body>
+
+	<div id="asset_container">
+		<%
+			project.isBuyer = false;
+			project.funding = 0;
+			project.isFunded = (project.funding>=project.goal) || project.isBuyer;
+		%>
+		<%- include Project.ejs %>
+	</div>
+
+	<div id="form">
+
+		<form action="/projects/update" method="POST" enctype="multipart/form-data" id="project_form">
+
+			<input type="hidden" name="_id" value="<%=project._id%>">
+			<input type="hidden" name="banner_original" value="<%=project.banner%>">
+			<input type="hidden" name="asset_original" value="<%=project.asset%>">
+
+			<!-- Metainfo -->
+			
+			The title for this asset:
+			<input type="text" name="title" value="<%=project.title%>" required>
+			<br>
+
+			A short description:
+			<input type="text" name="blurb" value="<%=project.blurb%>">
+			<br>
+
+			Update banner: (960x240)
+			<span style='font-size:14px'>
+				<%-(project.banner!="null") ? "<br><a href='"+project.banner+"'>current banner</a>" : ""%>
+			</span>
+			<input type="file" name="banner">
+			<br>
+
+			Preview Link (imgur/soundcloud/youtube/sketchfab):
+			<input type="text" name="preview" value="<%=project.preview%>">
+			<br>
+
+			<%if(!project.live){%>
+
+				<!-- Campaign -->
+				Make this public domain once I've earned this much: (USD)
+				<input type="text" name="goal" pattern="\d+(\.\d+)?" value="<%=project.goal%>">
+				<br>
+
+				<!-- Uploads -->
+
+				The public domain work to hold ransom (single file, or .zip):
+				<span style='font-size:14px'>
+					<%-(project.asset!="null") ? "<br><a href='"+project.asset+"'>current asset</a>" : ""%>
+				</span>
+				<input type="file" name="asset">
+				<br>
+
+				<!-- Draft Mode-->
+
+				Make this project live? once you do, you can't edit some things.
+				<input type="checkbox" id="live_switch" name="live" <%=project.live ? "checked" : ""%> >
+
+			<%}%>
+
+			<!-- Submit -->
+			<button name="submit">Update Project</button>
+
+		</form>
+
+	</div>
+
+	<br><br>
+	<br><br>
+
+</body>
+
+<script>
+
+var form = document.getElementById("project_form");
+
+var liveSwitch = document.getElementById("live_switch");
+liveSwitch.onchange = function(event){
+	console.log(liveSwitch.checked);
+	if(liveSwitch.checked){
+
+		if( form.title.value==""
+			|| form.blurb.value==""
+			// blah blah
+		){
+
+			liveSwitch.checked = false;
+			alert("You haven't completed this form yet, you can't submit it!");
+
+		}
+
+	}
+};
+
+</script>
